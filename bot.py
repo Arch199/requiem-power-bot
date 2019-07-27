@@ -6,8 +6,10 @@ import praw
 BOT_NAME = 'RequiemPowerBot'
 REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=100).'
 MIN_CHAIN_LEN = 3
+COMMENT_SUMMARY_LEN = 50
+SUBREDDIT = 'ShitPostCrusaders+Animemes+Anime+StardustCrusaders+Animememes'
 
-logging.basicConfig(level=logging.DEBUG, format='[{asctime}] {message}', style='{')
+logging.basicConfig(level=logging.INFO, format='[{asctime}] {message}', style='{')
 logger = logging.getLogger()
 
 reddit = praw.Reddit(BOT_NAME)
@@ -17,9 +19,9 @@ reddit = praw.Reddit(BOT_NAME)
 def chain_break_loop():
     # Look for chains among strings of comments everywhere
     while True:
-        for comment in reddit.subreddit('all').stream.comments():
-            summary = comment.body[:50].replace('\n', ' ')
-            if len(comment.body) > 50:
+        for comment in reddit.subreddit(SUBREDDIT).stream.comments():
+            summary = comment.body[:COMMENT_SUMMARY_LEN].replace('\n', ' ')
+            if len(comment.body) > COMMENT_SUMMARY_LEN:
                 summary += '...'
             logger.info(f'Looking at r/{comment.subreddit} comment: "{summary}"')
 
