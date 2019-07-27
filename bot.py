@@ -1,3 +1,4 @@
+import logging
 import threading
 
 import praw
@@ -5,6 +6,9 @@ import praw
 BOT_NAME = 'RequiemPowerBot'
 REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=100).'
 MIN_CHAIN_LEN = 3
+
+logging.basicConfig(level=logging.DEBUG, format='[{asctime}] {message}', style='{')
+logger = logging.getLogger()
 
 reddit = praw.Reddit(BOT_NAME)
 
@@ -17,7 +21,7 @@ def chain_break_loop():
             summary = comment.body[:50].replace('\n', ' ')
             if len(comment.body) > 50:
                 summary += '...'
-            print(f'Looking at r/{comment.subreddit} comment: "{summary}"')
+            logger.info(f'Looking at r/{comment.subreddit} comment: "{summary}"')
 
             # Check if the comment and its parents form a chain
             original_comment = comment
@@ -42,7 +46,7 @@ def summon_response_loop():
         # from: https://github.com/praw-dev/praw/issues/749
         for m in reddit.inbox.mentions():
             if m.new:
-                print(f'Summoned by user {m.author}!')
+                logger.info(f'Summoned by user {m.author}!')
                 comment = reddit.comment(m.id)
                 reply_with_meme(comment)
                 m.mark_read()
@@ -51,7 +55,7 @@ def summon_response_loop():
 # Reply function
 def reply_with_meme(comment):
     comment.reply(REPLY_MESSAGE)
-    print(f'--- !!! Replied to comment! !!! ---')
+    logger.info(f'--- !!! Replied to comment! !!! ---')
 
 
 if __name__ == '__main__':
