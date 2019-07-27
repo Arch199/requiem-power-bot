@@ -9,7 +9,8 @@ reddit = praw.Reddit(BOT_NAME)
 # Look for chains among strings of comments everywhere
 while True:
     for comment in reddit.subreddit('all').stream.comments():
-        print(f'Looking at r/{comment.subreddit} comment: "{comment.body[:100].replace('\n', '')}..."')
+        summary = comment.body[:100].replace('\n', '')
+        print(f'Looking at r/{comment.subreddit} comment: "{summary}..."')
 
         # Check if the comment and its parents form a chain
         original_comment = comment
