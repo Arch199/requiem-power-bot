@@ -56,8 +56,10 @@ def summon_response_loop():
 
 # Reply function
 def reply_with_meme(comment):
-    comment.reply(REPLY_MESSAGE)
-    logger.info(f'--- !!! Replied to comment! !!! ---')
+    # Make sure we don't reply to ourselves and loop forever
+    if comment.author != BOT_NAME:
+        comment.reply(REPLY_MESSAGE)
+        logger.info(f'--- !!! Replied to comment! !!! ---')
 
 
 if __name__ == '__main__':
