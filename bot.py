@@ -33,7 +33,7 @@ class RequiemPowerBot:
             setattr(self, multi, self.reddit.multireddit(BOT_NAME, multi))
 
         # Give the summon response and experimentation features to daemon threads
-        for f in (self.respond_to_summons, self.expand_target_subs, self.prune_target_subs):
+        for f in (self.respond_to_summons,):  # note: expanding and pruning disabled
             threading.Thread(target=f, daemon=True, name='Thread-' + f.__name__).start()
 
         # Set the main thread to work on looking to break comment chains
@@ -106,9 +106,10 @@ class RequiemPowerBot:
             # Check for target subs we should ignore
             karma_dict = self.reddit.user.karma()
             for sub in self.target_subs.subreddits:
-                # Remove subreddit's we're banned from
+                # Remove subreddits we're banned from
                 if sub.user_is_banned:
                     self.target_subs.remove(sub)
+
                 # Ignore subs we have low karma in
                 elif sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
                     logger.info(f'Ignoring {sub}')
