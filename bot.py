@@ -4,7 +4,6 @@ import os
 import time
 import threading
 
-import bmemcached
 import praw
 
 logging.basicConfig(level=logging.INFO, format='[{threadName}] {message}', style='{')
@@ -15,7 +14,7 @@ REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?
 CHAIN_LEN = 3
 COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
-CACHE_KEYS = ('target_subs', 'banned_subs', 'ignored_subs')
+MULTIREDDITS = ('target_subs', 'banned_subs', 'ignored_subs')
 EXPERIMENT_INTERVAL = 60 * 60 * 24  # one day in seconds
 
 
@@ -27,18 +26,9 @@ class RequiemPowerBot:
 
         self.reddit = praw.Reddit(BOT_NAME)
 
-        # Load cached data (current multireddit, banned and ignored subs)
-        try:
-            self.cache = ClientCache(bmemcached.Client(
-                os.environ['MEMCACHEDCLOUD_SERVERS'].split(','),
-                os.environ['MEMCACHEDCLOUD_USERNAME'],
-                os.environ['MEMCACHEDCLOUD_PASSWORD'],
-            ))
-        except KeyError:
-            self.cache = FileCache()
-        self.target_subs = self.reddit.multireddit(BOT_NAME, 'target_subs')
-        self.banned_subs = set(self.cache.get('banned_subs', []))
-        self.ignored_subs = set(self.cache.get('ignored_subs', []))
+        # Load multireddit data
+        for multi in MULTIREDDITS:
+            setattr(self, multi, self.reddit.multireddit(BOT_NAME, multi))
 
         # Give the summon response and experimentation features to daemon threads
         for f in (self.respond_to_summons, self.expand_target_subs):
@@ -93,25 +83,20 @@ class RequiemPowerBot:
             for sub in self.target_subs.subreddits:
                 # Ignore a subreddit if we have non-positive comment karma
                 if sub in karma_dict and karma_dict[sub]['comment_karma'] < 1:
+                    logger.info(f'Ignoring {sub}')
                     self.target_subs.remove(sub)
-                    self.ignored_subs.add(sub.display_name)
+                    self.ignored_subs.add(sub)
 
             logger.info('Trying to expand target subs')
             # Try out a random sub that we haven't ignored or been banned from
             while True:
                 new_sub = self.reddit.random_subreddit()
-                logger.info(f'Got random sub: {new_sub.display_name}')
-                if new_sub.display_name not in self.banned_subs and new_sub.display_name not in self.ignored_subs:
+                logger.info(f'Got random sub: {new_sub}')
+                if new_sub not in self.banned_subs.subreddits and new_sub not in self.ignored_subs.subreddits:
                     break
-            logger.info(f'Success! Adding {new_sub.display_name} to targets')
-            self.target_subs.add(new_sub.display_name)
+            logger.info(f'Success! Adding {new_sub} to targets')
+            self.target_subs.add(new_sub)
 
-            # Update our cache
-            self.cache.update({
-                'target_subs': [str(s) for s in self.target_subs.subreddits],
-                'banned_subs': list(self.banned_subs),
-                'ignored_subs': list(self.ignored_subs),
-            })
             time.sleep(EXPERIMENT_INTERVAL)
 
     @staticmethod
@@ -121,50 +106,6 @@ class RequiemPowerBot:
         if comment.author != BOT_NAME:
             comment.reply(REPLY_MESSAGE)
             logger.info(f'--- !!! Replied to comment! !!! ---')
-
-
-class ClientCache:
-    """ A wrapper for `bmemcached.Client` for partial duck-typing compatibility with `dict`. """
-
-    def __init__(self, client):
-        self.client = client
-
-    def get(self, key, default=None):
-        value = json.loads(client.get(key))
-        if not value:
-            return default
-
-    def update(self, new_dict):
-        self.client.set_multi(new_dict)
-
-
-class FileCache:
-    """ A cache for local file storage. """
-
-    FILENAME = 'cache.json'
-
-    def __init__(self, initial=None):
-        if initial is not None:
-            self._write_dict(initial)
-
-    def get(self, key, default=None):
-        return self._read_dict().get(key, default)
-
-    def update(self, new_dict):
-        self._write_dict(new_dict)
-
-    def _read_dict(self):
-        try:
-            with open(self.FILENAME) as f:
-                return json.loads(f.read())
-        except OSError:
-            return {}
-
-    def _write_dict(self, d):
-        if type(d) is not dict:
-            raise ValueError('Cache must be a dict')
-        with open(self.FILENAME, 'w') as f:
-            f.write(json.dumps(d))
 
 
 if __name__ == '__main__':
