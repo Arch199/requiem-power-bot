@@ -88,8 +88,11 @@ class RequiemPowerBot:
             # Check for target subs we should ignore
             karma_dict = self.reddit.user.karma()
             for sub in self.target_subs.subreddits:
-                # Ignore a subreddit if we're banned or have low comment karma
-                if sub.user_is_banned or sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
+                # Remove subreddit's we're banned from
+                if sub.user_is_banned:
+                    self.target_subs.remove(sub)
+                # Ignore subs we have low karam in
+                elif sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
                     logger.info(f'Ignoring {sub}')
                     if len(self.ignored_subs.subreddits) >= MAX_TARGETS:
                         logger.info('Too many ignored subs: resetting')
