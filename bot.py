@@ -16,7 +16,8 @@ COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
 MULTIREDDITS = ('target_subs', 'ignored_subs')
 MAX_TARGETS = 100
-EXPERIMENT_INTERVAL = 60 * 60 * 24  # one day in seconds
+EXPAND_INTERVAL = 60 * 60 * 24  # 1 day in seconds
+PRUNE_INTERVAL = 60 * 10  # 10 minutes in seconds
 
 
 class RequiemPowerBot:
@@ -32,7 +33,7 @@ class RequiemPowerBot:
             setattr(self, multi, self.reddit.multireddit(BOT_NAME, multi))
 
         # Give the summon response and experimentation features to daemon threads
-        for f in (self.respond_to_summons, self.expand_target_subs):
+        for f in (self.respond_to_summons, self.expand_target_subs, self.prune_target_subs):
             threading.Thread(target=f, daemon=True, name='Thread-' + f.__name__).start()
 
         # Set the main thread to work on looking to break comment chains
@@ -68,15 +69,32 @@ class RequiemPowerBot:
         """ Respond to summons (username mentions). """
 
         # from: https://github.com/praw-dev/praw/issues/749
-        for msg in self.reddit.inbox.mentions():
-            if msg.new:
-                logger.info(f'Summoned by user {msg.author}!')
-                comment = self.reddit.comment(msg.id)
-                self.reply_with_meme(comment)
-                msg.mark_read()
+        while True:
+            for msg in self.reddit.inbox.mentions():
+                if msg.new:
+                    logger.info(f'Summoned by user {msg.author}!')
+                    comment = self.reddit.comment(msg.id)
+                    self.reply_with_meme(comment)
+                    msg.mark_read()
 
     def expand_target_subs(self):
         """ Occasionally attempt to expand to a new target sub. """
+
+        while True:
+            logger.info('Trying to expand target subs')
+            # Try out a random sub that we haven't ignored or been banned from
+            while True:
+                new_sub = self.reddit.random_subreddit()
+                logger.info(f'Got random sub: {new_sub}')
+                if not new_sub.user_is_banned and new_sub not in self.ignored_subs.subreddits:
+                    break
+            logger.info(f'Success! Adding {new_sub} to targets')
+            self.target_subs.add(new_sub)
+
+            time.sleep(EXPAND_INTERVAL)
+
+    def prune_target_subs(self):
+        """ Ignore subs where we have low comment karma. """
 
         while True:
             # Set a lower karma bound based on how many targets we have
@@ -91,7 +109,7 @@ class RequiemPowerBot:
                 # Remove subreddit's we're banned from
                 if sub.user_is_banned:
                     self.target_subs.remove(sub)
-                # Ignore subs we have low karam in
+                # Ignore subs we have low karma in
                 elif sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
                     logger.info(f'Ignoring {sub}')
                     if len(self.ignored_subs.subreddits) >= MAX_TARGETS:
@@ -100,17 +118,7 @@ class RequiemPowerBot:
                     self.target_subs.remove(sub)
                     self.ignored_subs.add(sub)
 
-            logger.info('Trying to expand target subs')
-            # Try out a random sub that we haven't ignored or been banned from
-            while True:
-                new_sub = self.reddit.random_subreddit()
-                logger.info(f'Got random sub: {new_sub}')
-                if not new_sub.user_is_banned and new_sub not in self.ignored_subs.subreddits:
-                    break
-            logger.info(f'Success! Adding {new_sub} to targets')
-            self.target_subs.add(new_sub)
-
-            time.sleep(EXPERIMENT_INTERVAL)
+            time.sleep(PRUNE_INTERVAL)
 
     @staticmethod
     def reply_with_meme(comment):
