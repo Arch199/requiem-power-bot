@@ -59,7 +59,8 @@ class RequiemPowerBot:
                 comment = parent
 
             # Reply and break the chain if found, ensuring it is exactly the right length
-            if is_chain and comment.parent().body != original_comment.body:
+            parent = comment.parent()
+            if is_chain and (isinstance(parent, praw.models.Submission) or parent.body != original_comment.body):
                 self.reply_with_meme(original_comment)
 
     def respond_to_summons(self):
