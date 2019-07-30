@@ -14,7 +14,7 @@ REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?
 CHAIN_LEN = 3
 COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
-MULTIREDDITS = ('target_subs', 'banned_subs', 'ignored_subs')
+MULTIREDDITS = ('target_subs', 'ignored_subs')
 MAX_TARGETS = 100
 EXPERIMENT_INTERVAL = 60 * 60 * 24  # one day in seconds
 
@@ -68,13 +68,12 @@ class RequiemPowerBot:
         """ Respond to summons (username mentions). """
 
         # from: https://github.com/praw-dev/praw/issues/749
-        # TODO: refactor to look through all messages and check for bans
-        for m in self.reddit.inbox.mentions():
-            if m.new:
-                logger.info(f'Summoned by user {m.author}!')
-                comment = self.reddit.comment(m.id)
+        for msg in self.reddit.inbox.mentions():
+            if msg.new:
+                logger.info(f'Summoned by user {msg.author}!')
+                comment = self.reddit.comment(msg.id)
                 self.reply_with_meme(comment)
-                m.mark_read()
+                msg.mark_read()
 
     def expand_target_subs(self):
         """ Occasionally attempt to expand to a new target sub. """
@@ -89,9 +88,12 @@ class RequiemPowerBot:
             # Check for target subs we should ignore
             karma_dict = self.reddit.user.karma()
             for sub in self.target_subs.subreddits:
-                # Ignore a subreddit if we have non-positive comment karma
-                if sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
+                # Ignore a subreddit if we're banned or have low comment karma
+                if sub.user_is_banned or sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
                     logger.info(f'Ignoring {sub}')
+                    if len(self.ignored_subs.subreddits) >= MAX_TARGETS:
+                        logger.info('Too many ignored subs: resetting')
+                        self.ignored_subs.update(subreddits=[])
                     self.target_subs.remove(sub)
                     self.ignored_subs.add(sub)
 
@@ -100,7 +102,7 @@ class RequiemPowerBot:
             while True:
                 new_sub = self.reddit.random_subreddit()
                 logger.info(f'Got random sub: {new_sub}')
-                if new_sub not in self.banned_subs.subreddits and new_sub not in self.ignored_subs.subreddits:
+                if not new_sub.user_is_banned and new_sub not in self.ignored_subs.subreddits:
                     break
             logger.info(f'Success! Adding {new_sub} to targets')
             self.target_subs.add(new_sub)
