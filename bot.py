@@ -12,7 +12,7 @@ logger = logging.getLogger()
 
 BOT_NAME = 'RequiemPowerBot'
 REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=100).'
-MIN_CHAIN_LEN = 3  # TODO: replace with a strict length (to avoid spam)
+CHAIN_LEN = 3
 COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
 CACHE_KEYS = ('target_subs', 'banned_subs', 'ignored_subs')
@@ -48,7 +48,7 @@ class RequiemPowerBot:
         self.break_chains()
 
     def break_chains(self):
-        """ Search for comment chains of at least `MIN_CHAIN_LEN` in length containing all the same comment. """
+        """ Search for comment chains `CHAIN_LEN` in length containing all the same comment. """
 
         for comment in self.target_subs.stream.comments():
             summary = comment.body[:COMMENT_SUMMARY_LEN].replace('\n', ' ')
@@ -60,16 +60,16 @@ class RequiemPowerBot:
             original_comment = comment
             is_chain = True
             chain_len = 1
-            while chain_len < MIN_CHAIN_LEN:
+            while chain_len < CHAIN_LEN:
                 parent = comment.parent()
-                if type(parent) != praw.models.Comment or parent.body != comment.body:
+                if not isinstance(parent, praw.models.Comment) or parent.body != comment.body:
                     is_chain = False
                     break
                 chain_len += 1
                 comment = parent
 
-            # Reply and break the chain if found
-            if is_chain:
+            # Reply and break the chain if found, ensuring it is exactly the right length
+            if is_chain and comment.parent().body != original_comment.body:
                 self.reply_with_meme(original_comment)
 
     def respond_to_summons(self):
@@ -103,7 +103,7 @@ class RequiemPowerBot:
                 logger.info(f'Got random sub: {new_sub.display_name}')
                 if new_sub.display_name not in self.banned_subs and new_sub.display_name not in self.ignored_subs:
                     break
-            logger.info('Success! Adding {new_sub.display_name} to targets')
+            logger.info(f'Success! Adding {new_sub.display_name} to targets')
             self.target_subs.add(new_sub.display_name)
 
             # Update our cache
