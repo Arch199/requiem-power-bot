@@ -15,6 +15,7 @@ CHAIN_LEN = 3
 COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
 MULTIREDDITS = ('target_subs', 'banned_subs', 'ignored_subs')
+MAX_TARGETS = 100
 EXPERIMENT_INTERVAL = 60 * 60 * 24  # one day in seconds
 
 
@@ -79,11 +80,17 @@ class RequiemPowerBot:
         """ Occasionally attempt to expand to a new target sub. """
 
         while True:
+            # Set a lower karma bound based on how many targets we have
+            if len(self.target_subs.subreddits) > MAX_TARGETS / 2:
+                min_karma = 2
+            else:
+                min_karma = 1
+
             # Check for target subs we should ignore
             karma_dict = self.reddit.user.karma()
             for sub in self.target_subs.subreddits:
                 # Ignore a subreddit if we have non-positive comment karma
-                if sub in karma_dict and karma_dict[sub]['comment_karma'] < 1:
+                if sub in karma_dict and karma_dict[sub]['comment_karma'] < min_karma:
                     logger.info(f'Ignoring {sub}')
                     self.target_subs.remove(sub)
                     self.ignored_subs.add(sub)
