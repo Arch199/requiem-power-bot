@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO, format='[{threadName}] {message}', style
 logger = logging.getLogger()
 
 BOT_NAME = 'RequiemPowerBot'
-REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=100).'
-SPOILER_SAFE_MESSAGE = 'This is... the power of ^(*a JoJo Part 5 spoiler*) >![Requiem](https://youtu.be/qs3t2pE4ZsE?t=100)!<.'
+REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=122).'
+SPOILER_SAFE_MESSAGE = 'This is... the power of ^(*a JoJo Part 5 spoiler*) >![Requiem](https://youtu.be/qs3t2pE4ZsE?t=122)!<.'
 CHAIN_LEN = 3
 COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
