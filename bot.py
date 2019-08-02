@@ -12,7 +12,7 @@ logger = logging.getLogger()
 BOT_NAME = 'RequiemPowerBot'
 REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=122).'
 SPOILER_SAFE_MESSAGE = 'This is... the power of ^(*a JoJo Part 5 spoiler*) >![Requiem](https://youtu.be/qs3t2pE4ZsE?t=122)!<.'
-CHAIN_LEN = 3
+CHAIN_LEN = 5
 COMMENT_SUMMARY_LEN = 50
 DEFAULT_TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
 MULTIREDDITS = ('target_subs', 'ignored_subs')
