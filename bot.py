@@ -21,6 +21,7 @@ class RequiemPowerBot:
         """ Loads any cached data and starts the features on separate threads. """
 
         self.reddit = praw.Reddit(BOT_NAME)
+        self.target_subs = self.reddit.subreddit('+'.join(TARGET_SUBS))
 
         # Give the summon response feature to a daemon thread
         threading.Thread(target=self.respond_to_summons, daemon=True, name='Thread-summons').start()
