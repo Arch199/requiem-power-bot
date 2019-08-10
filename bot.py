@@ -11,7 +11,7 @@ REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?
 SPOILER_SAFE_MESSAGE = 'This is... the power of ^(*a JoJo Part 5 spoiler*) >![Requiem](https://youtu.be/qs3t2pE4ZsE?t=122)!<.'
 CHAIN_LEN = 5
 COMMENT_SUMMARY_LEN = 50
-TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes')
+TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
 
 
 class RequiemPowerBot:
