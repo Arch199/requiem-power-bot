@@ -28,7 +28,6 @@ class RequiemPowerBot:
 
     def __init__(self):
         """ Loads any cached data and starts the features on separate threads. """
-
         self.reddit = praw.Reddit(BOT_NAME)
         self.target_subs = self.reddit.subreddit('+'.join(TARGET_SUBS))
 
@@ -41,7 +40,6 @@ class RequiemPowerBot:
 
     def break_chains(self):
         """ Search for comment chains `CHAIN_LEN` in length containing all the same comment. """
-
         for comment in self.target_subs.stream.comments():
             summary = comment.body[:COMMENT_SUMMARY_LEN].replace('\n', ' ')
             if len(comment.body) > COMMENT_SUMMARY_LEN:
@@ -67,7 +65,6 @@ class RequiemPowerBot:
 
     def respond_to_summons(self):
         """ Respond to summons (username mentions). """
-
         # from: https://github.com/praw-dev/praw/issues/749
         while True:
             for msg in self.reddit.inbox.mentions():
@@ -79,16 +76,14 @@ class RequiemPowerBot:
 
     def clean_comments(self):
         """ Look through recent comments and delete those with low karma. """
-
         while True:
-            for comment in self.reddit.user.me().comments().new():
+            for comment in self.reddit.user.me().comments.new():
                 if comment.score < MIN_COMMENT_SCORE:
                     comment.delete()
 
     @staticmethod
     def reply_with_meme(comment):
         """ Reply to a comment, ensuring it isn't ours to avoid an infinite loop. """
-
         if comment.author != BOT_NAME:
             if random.random() < SPECIAL_LINK_CHANCE:
                 link = SPECIAL_LINK
