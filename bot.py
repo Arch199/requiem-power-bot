@@ -77,8 +77,10 @@ class RequiemPowerBot:
     def clean_comments(self):
         """ Look through recent comments and delete those with low karma. """
         while True:
+            logger.info('Starting comment cleaning')
             for comment in self.reddit.user.me().comments.new():
                 if comment.score < MIN_COMMENT_SCORE:
+                    logger.info(f'Deleting comment {comment} with karma {comment.score}')
                     comment.delete()
 
     @staticmethod
