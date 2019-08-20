@@ -10,7 +10,7 @@ logger = logging.getLogger()
 
 BOT_NAME = 'RequiemPowerBot'
 CHAIN_LEN = 5
-MIN_COMMENT_SCORE = 1
+MIN_COMMENT_SCORE = 0
 CLEAN_COMMENT_INTERVAL = 60 * 60  # 1 hour in seconds
 COMMENT_SUMMARY_LEN = 50
 TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
@@ -76,12 +76,13 @@ class RequiemPowerBot:
                     msg.mark_read()
 
     def clean_comments(self):
-        """ Look through recent comments and delete those with low karma. """
+        """ Look through recent comments and delete those with low score. """
         while True:
             logger.info('Starting comment cleaning')
             for comment in self.reddit.user.me().comments.new():
+                logger.info(f'Considering comment {comment.submission}/{comment} with score {comment.score}')
                 if comment.score < MIN_COMMENT_SCORE:
-                    logger.info(f'Deleting comment {comment} with karma {comment.score}')
+                    logger.info(f'Score too low! Deleting comment')
                     comment.delete()
             time.sleep(CLEAN_COMMENT_INTERVAL)
 
