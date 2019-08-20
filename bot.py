@@ -9,6 +9,8 @@ logger = logging.getLogger()
 
 BOT_NAME = 'RequiemPowerBot'
 CHAIN_LEN = 5
+MIN_COMMENT_SCORE = 1
+CLEAN_COMMENT_INTERVAL = 60 * 60  # 1 hour in seconds
 COMMENT_SUMMARY_LEN = 50
 TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
 
@@ -30,8 +32,9 @@ class RequiemPowerBot:
         self.reddit = praw.Reddit(BOT_NAME)
         self.target_subs = self.reddit.subreddit('+'.join(TARGET_SUBS))
 
-        # Give the summon response feature to a daemon thread
-        threading.Thread(target=self.respond_to_summons, daemon=True, name='Thread-summons').start()
+        # Give the summon response and and comment cleaning feature to daemon threads
+        for f in (self.respond_to_summons, self.clean_comments):
+            threading.Thread(target=f, daemon=True, name='Thread-' + f.__name__).start()
 
         # Set the main thread to work on looking to break comment chains
         self.break_chains()
@@ -73,6 +76,14 @@ class RequiemPowerBot:
                     comment = self.reddit.comment(msg.id)
                     self.reply_with_meme(comment)
                     msg.mark_read()
+
+    def clean_comments(self):
+        """ Look through recent comments and delete those with low karma. """
+
+        while True:
+            for comment in self.reddit.user.me().comments().new():
+                if comment.score < MIN_COMMENT_SCORE:
+                    comment.delete()
 
     @staticmethod
     def reply_with_meme(comment):
