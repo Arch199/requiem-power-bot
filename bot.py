@@ -1,5 +1,6 @@
 import logging
 import threading
+import random
 
 import praw
 
@@ -7,11 +8,17 @@ logging.basicConfig(level=logging.INFO, format='[{threadName}] {message}', style
 logger = logging.getLogger()
 
 BOT_NAME = 'RequiemPowerBot'
-REPLY_MESSAGE = 'This is... the power of [Requiem](https://youtu.be/qs3t2pE4ZsE?t=122).'
-SPOILER_SAFE_MESSAGE = 'This is... the power of ^(*a JoJo Part 5 spoiler*) >![Requiem](https://youtu.be/qs3t2pE4ZsE?t=122)!<.'
 CHAIN_LEN = 5
 COMMENT_SUMMARY_LEN = 50
 TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
+
+NORMAL_LINK = 'https://youtu.be/qs3t2pE4ZsE?t=122'
+SPECIAL_LINK = 'https://www.reddit.com/r/YouFellForItFool/comments/cjlngm/you_fell_for_it_fool/'
+SPECIAL_LINK_CHANCE = 0.1
+
+MESSAGE_PREFIX = 'This is... the power of '
+REPLY_MESSAGE = MESSAGE_PREFIX + '[Requiem]({}).'
+SPOILER_SAFE_MESSAGE = MESSAGE_PREFIX + '^(*a JoJo Part 5 spoiler*) >![Requiem]({})!<.'
 
 
 class RequiemPowerBot:
@@ -72,11 +79,15 @@ class RequiemPowerBot:
         """ Reply to a comment, ensuring it isn't ours to avoid an infinite loop. """
 
         if comment.author != BOT_NAME:
+            if random.random() < SPECIAL_LINK_CHANCE:
+                link = SPECIAL_LINK
+            else:
+                link = NORMAL_LINK
             if comment.subreddit.display_name == 'Animemes':
                 msg = SPOILER_SAFE_MESSAGE
             else:
                 msg = REPLY_MESSAGE
-            comment.reply(msg)
+            comment.reply(msg.format(link))
             logger.info(f'--- !!! Replied to comment! !!! ---')
 
 
