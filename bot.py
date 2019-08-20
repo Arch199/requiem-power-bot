@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 import random
 
 import praw
@@ -82,6 +83,7 @@ class RequiemPowerBot:
                 if comment.score < MIN_COMMENT_SCORE:
                     logger.info(f'Deleting comment {comment} with karma {comment.score}')
                     comment.delete()
+            time.sleep(CLEAN_COMMENT_INTERVAL)
 
     @staticmethod
     def reply_with_meme(comment):
