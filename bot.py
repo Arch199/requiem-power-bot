@@ -11,7 +11,8 @@ logger = logging.getLogger()
 BOT_NAME = 'RequiemPowerBot'
 CHAIN_LEN = 5
 MIN_COMMENT_SCORE = 0
-CLEAN_COMMENT_INTERVAL = 60 * 60  # 1 hour in seconds
+CLEAN_COMMENT_INTERVAL = 60 * 60 * 24  # 24 hours
+SUMMON_RESPONSE_INTERVAL = 60 * 5  # 5 minutes
 COMMENT_SUMMARY_LEN = 50
 TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
 
@@ -74,6 +75,7 @@ class RequiemPowerBot:
                     comment = self.reddit.comment(msg.id)
                     self.reply_with_meme(comment)
                     msg.mark_read()
+            time.sleep(SUMMON_RESPONSE_INTERVAL)
 
     def clean_comments(self):
         """ Look through recent comments and delete those with low score. """
