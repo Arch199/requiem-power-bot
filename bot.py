@@ -12,7 +12,7 @@ BOT_NAME = 'RequiemPowerBot'
 CHAIN_LEN = 5
 MIN_COMMENT_SCORE = 0
 CLEAN_COMMENT_INTERVAL = 60 * 60 * 24  # 24 hours
-SUMMON_RESPONSE_INTERVAL = 60 * 5  # 5 minutes
+SUMMON_RESPONSE_INTERVAL = 60 * 15  # 15 minutes
 COMMENT_SUMMARY_LEN = 50
 TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
 
