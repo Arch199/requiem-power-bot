@@ -14,7 +14,8 @@ MIN_COMMENT_SCORE = 0
 CLEAN_COMMENT_INTERVAL = 60 * 60 * 24  # 24 hours
 SUMMON_RESPONSE_INTERVAL = 60 * 15  # 15 minutes
 COMMENT_SUMMARY_LEN = 50
-TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'animememes', 'DiavoloDeathCount')
+TARGET_SUBS = ('ShitPostCrusaders', 'Animemes', 'goodanimemes', 'animememes', 'DiavoloDeathCount')
+SPOILER_SUBS = ('Animemes', 'goodanimemes')
 
 NORMAL_LINK = 'https://youtu.be/qs3t2pE4ZsE?t=122'
 SPECIAL_LINK = 'https://www.reddit.com/r/YouFellForItFool/comments/cjlngm/you_fell_for_it_fool/'
@@ -96,7 +97,7 @@ class RequiemPowerBot:
                 link = SPECIAL_LINK
             else:
                 link = NORMAL_LINK
-            if comment.subreddit.display_name == 'Animemes':
+            if comment.subreddit.display_name in SPOILER_SUBS:
                 msg = SPOILER_SAFE_MESSAGE
             else:
                 msg = REPLY_MESSAGE
